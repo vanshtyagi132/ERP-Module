@@ -216,7 +216,7 @@ python3 manage.py runserver
 
 1. Push this repo to GitHub and create a **Blueprint** deploy in Render using `render.yaml`.
 2. If you deploy manually, set:
-   - **Build Command:** `pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput`
+   - **Build Command:** `pip install --upgrade pip wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput`
    - **Start Command:** `python manage.py migrate && gunicorn college_management_system.wsgi:application --log-file -`
 3. Create/add environment variables:
    - `DEBUG=False`
@@ -226,7 +226,9 @@ python3 manage.py runserver
    - `DATABASE_URL=<Render PostgreSQL Internal Database URL>`
 4. Set Python runtime to **3.10.14** (already included in `runtime.txt` and `render.yaml`).
 
-> If you see `ModuleNotFoundError: No module named 'pkg_resources'`, install `setuptools` (already added to `requirements.txt`) and redeploy.
+> If you see `ModuleNotFoundError: No module named 'pkg_resources'`, use `setuptools<81` (already pinned in `requirements.txt`) and redeploy.
+>
+> If logs still show `Running 'gunicorn app:app'`, your Render service is still using an old Start Command from dashboard settings; update it to the command above and redeploy.
 
 ---
 

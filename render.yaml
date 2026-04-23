@@ -3,7 +3,7 @@ services:
     name: college-erp-web
     env: python
     plan: free
-    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput
+    buildCommand: pip install --upgrade pip wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: python manage.py migrate && gunicorn college_management_system.wsgi:application --log-file -
     envVars:
       - key: PYTHON_VERSION
