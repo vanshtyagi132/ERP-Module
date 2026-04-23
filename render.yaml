@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: college-erp-web
+    env: python
+    plan: free
+    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate && gunicorn college_management_system.wsgi:application --log-file -
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
+      - key: DJANGO_SETTINGS_MODULE
+        value: college_management_system.settings
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: college-erp-web.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://college-erp-web.onrender.com
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: college-erp-db
+          property: connectionString
+
+databases:
+  - name: college-erp-db
+    plan: free

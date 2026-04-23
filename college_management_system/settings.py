@@ -22,18 +22,32 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def env_bool(name, default=False):
+    value = os.getenv(name, str(default))
+    return value.strip().lower() in {'1', 'true', 't', 'yes', 'on'}
+
+
+def env_list(name, default=''):
+    value = os.getenv(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7')
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = env_bool('DEBUG', True)
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7'
+    else:
+        raise ValueError('SECRET_KEY must be set when DEBUG is False.')
 
 # ALLOWED_HOSTS configuration
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS]
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 
 # Application definition
@@ -53,15 +67,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    # Third Part Middleware
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 
     # My Middleware
     'main_app.middleware.LoginCheckMiddleWare',
@@ -91,14 +103,17 @@ WSGI_APPLICATION = 'college_management_system.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+DB_PORT_DEFAULT = '5432' if DB_ENGINE == 'django.db.backends.postgresql' else '3306'
+
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': BASE_DIR / 'db.sqlite3' if os.getenv('DB_ENGINE', 'django.db.backends.sqlite3') == 'django.db.backends.sqlite3' else os.getenv('DB_NAME', 'college_erp_db'),
-        'USER': os.getenv('DB_USER', 'erp_user') if os.getenv('DB_ENGINE') != 'django.db.backends.sqlite3' else '',
-        'PASSWORD': os.getenv('DB_PASSWORD', '') if os.getenv('DB_ENGINE') != 'django.db.backends.sqlite3' else '',
-        'HOST': os.getenv('DB_HOST', 'localhost') if os.getenv('DB_ENGINE') != 'django.db.backends.sqlite3' else '',
-        'PORT': os.getenv('DB_PORT', '3306') if os.getenv('DB_ENGINE') != 'django.db.backends.sqlite3' else '',
+        'ENGINE': DB_ENGINE,
+        'NAME': BASE_DIR / 'db.sqlite3' if DB_ENGINE == 'django.db.backends.sqlite3' else os.getenv('DB_NAME', 'college_erp_db'),
+        'USER': os.getenv('DB_USER', 'erp_user') if DB_ENGINE != 'django.db.backends.sqlite3' else '',
+        'PASSWORD': os.getenv('DB_PASSWORD', '') if DB_ENGINE != 'django.db.backends.sqlite3' else '',
+        'HOST': os.getenv('DB_HOST', 'localhost') if DB_ENGINE != 'django.db.backends.sqlite3' else '',
+        'PORT': os.getenv('DB_PORT', DB_PORT_DEFAULT) if DB_ENGINE != 'django.db.backends.sqlite3' else '',
     }
 }
 
@@ -169,14 +184,14 @@ EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '') 
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_TLS = env_bool('EMAIL_USE_TLS', True)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'College ERP <noreply@collegeerp.com>')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Google reCAPTCHA Configuration
-RECAPTCHA_SITE_KEY = '6Lf018UsAAAAANBbrbJLfPTEcFkWwa1dOJOXJF9P'
-RECAPTCHA_SECRET_KEY = '6Lf018UsAAAAADjGPlNmIPlZhN7f67PEF6P7-c0j'
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6Lf018UsAAAAANBbrbJLfPTEcFkWwa1dOJOXJF9P')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6Lf018UsAAAAADjGPlNmIPlZhN7f67PEF6P7-c0j')
 
 # ============================================================================
 # SECURITY SETTINGS (Part 6)
@@ -185,6 +200,8 @@ RECAPTCHA_SECRET_KEY = '6Lf018UsAAAAADjGPlNmIPlZhN7f67PEF6P7-c0j'
 # Security: Only allow HTTPS in production
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -196,13 +213,15 @@ if not DEBUG:
 else:
     # Development settings
     SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = None
+    USE_X_FORWARDED_HOST = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 
 # CSRF and Cookie Security
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',')
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000')
 
 # Security Headers
 X_FRAME_OPTIONS = 'DENY'
@@ -219,6 +238,9 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 # LOGGING CONFIGURATION
 # ============================================================================
 
+LOG_DIR = os.path.join(BASE_DIR, 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -226,7 +248,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'filename': os.path.join(LOG_DIR, 'django.log'),
         },
         'console': {
             'level': 'DEBUG',

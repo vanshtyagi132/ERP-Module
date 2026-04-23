@@ -22,6 +22,7 @@
 - [Demo Credentials](#-demo-credentials)
 - [Technology Stack](#-technology-stack)
 - [Installation](#-installation)
+- [Deploy on Render](#-deploy-on-render-web--postgresql)
 - [Screenshots](#-screenshots)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
@@ -208,6 +209,24 @@ python3 manage.py runserver
 ```
 
 🎉 **Success!** Visit `http://127.0.0.1:8000` in your browser
+
+---
+
+## ☁️ Deploy on Render (Web + PostgreSQL)
+
+1. Push this repo to GitHub and create a **Blueprint** deploy in Render using `render.yaml`.
+2. If you deploy manually, set:
+   - **Build Command:** `pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python manage.py collectstatic --noinput`
+   - **Start Command:** `python manage.py migrate && gunicorn college_management_system.wsgi:application --log-file -`
+3. Create/add environment variables:
+   - `DEBUG=False`
+   - `SECRET_KEY=<strong-random-secret>`
+   - `ALLOWED_HOSTS=<your-render-domain>`
+   - `CSRF_TRUSTED_ORIGINS=https://<your-render-domain>`
+   - `DATABASE_URL=<Render PostgreSQL Internal Database URL>`
+4. Set Python runtime to **3.10.14** (already included in `runtime.txt` and `render.yaml`).
+
+> If you see `ModuleNotFoundError: No module named 'pkg_resources'`, install `setuptools` (already added to `requirements.txt`) and redeploy.
 
 ---
 
