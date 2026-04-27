@@ -27,15 +27,13 @@ def doLogin(request, **kwargs):
     if request.method != 'POST':
         return HttpResponse("<h4>Denied</h4>")
     else:
-        #Google recaptcha
         captcha_token = request.POST.get('g-recaptcha-response')
         captcha_url = "https://www.google.com/recaptcha/api/siteverify"
-        captcha_key = "6Lf018UsAAAAADjGPlNmIPlZhN7f67PEF6P7-c0j"  # New Secret Key
+        captcha_key = "6Lf018UsAAAAADjGPlNmIPlZhN7f67PEF6P7-c0j"  
         data = {
             'secret': captcha_key,
             'response': captcha_token
         }
-        # Make request
         try:
             captcha_server = requests.post(url=captcha_url, data=data)
             response = json.loads(captcha_server.text)
@@ -46,20 +44,22 @@ def doLogin(request, **kwargs):
             messages.error(request, 'Captcha could not be verified. Try Again')
             return redirect('/')
         
-        #Authenticate
-        user = EmailBackend.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
-        if user != None:
-            login(request, user)
+        # FIX: Use Django's built-in authenticate function
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        # Standard authenticate checks AUTHENTICATION_BACKENDS automatically
+        user = authenticate(request, username=email, password=password)
+        
+        if user is not None:
+            login(request, user)  # This will now work successfully
             
             # Handle "Remember Me" functionality
             remember_me = request.POST.get('remember')
             if remember_me:
-                # Set session to expire when browser closes = False
-                # Session will last for 30 days
-                request.session.set_expiry(30 * 24 * 60 * 60)  # 30 days in seconds
+                request.session.set_expiry(30 * 24 * 60 * 60)  # 30 days
             else:
-                # Set session to expire when browser closes
-                request.session.set_expiry(0)
+                request.session.set_expiry(0)  # Expire on browser close
             
             if user.user_type == '1':
                 return redirect(reverse("admin_home"))
