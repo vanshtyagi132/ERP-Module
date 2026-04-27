@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import dj_database_url
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -42,8 +43,9 @@ DEBUG = env_bool('DEBUG', not IS_RENDER)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
+IS_COLLECTSTATIC_COMMAND = len(sys.argv) > 1 and sys.argv[1] == 'collectstatic'
 if not SECRET_KEY:
-    if DEBUG:
+    if DEBUG or IS_COLLECTSTATIC_COMMAND:
         SECRET_KEY = 'f2zx8*lb*em*-*b+!&1lpp&$_9q9kmkar+l3x90do@s(+sr&x7'
     else:
         raise ValueError('SECRET_KEY must be set when DEBUG is False.')
