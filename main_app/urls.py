@@ -17,7 +17,7 @@ from django.urls import path
 
 from main_app.EditResultView import EditResultView
 
-from . import hod_views, staff_views, student_views, views
+from . import hod_views, staff_views, student_views, views, admin_settings_views
 
 urlpatterns = [
     path("", views.login_page, name='login_page'),
@@ -32,6 +32,16 @@ urlpatterns = [
          name='send_student_notification'),
     path("send_staff_notification/", hod_views.send_staff_notification,
          name='send_staff_notification'),
+    path("send_student_notification_with_file/", admin_settings_views.send_student_notification_with_file,
+         name='send_student_notification_with_file'),
+    path("send_staff_notification_with_file/", admin_settings_views.send_staff_notification_with_file,
+         name='send_staff_notification_with_file'),
+    path("admin/settings/", admin_settings_views.admin_settings_view,
+         name='admin_settings_view'),
+    path("admin/broadcast/students/", admin_settings_views.broadcast_notification_to_all_students,
+         name='broadcast_notification_to_all_students'),
+    path("admin/broadcast/staff/", admin_settings_views.broadcast_notification_to_all_staff,
+         name='broadcast_notification_to_all_staff'),
     path("add_session/", hod_views.add_session, name='add_session'),
     path("admin_notify_student", hod_views.admin_notify_student,
          name='admin_notify_student'),

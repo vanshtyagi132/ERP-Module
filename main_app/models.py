@@ -180,15 +180,23 @@ class FeedbackStaff(models.Model):
 class NotificationStaff(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
     message = models.TextField()
+    attachment = models.FileField(upload_to='notifications/staff/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Notification for {self.staff.admin.first_name} - {self.created_at.date()}"
 
 
 class NotificationStudent(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     message = models.TextField()
+    attachment = models.FileField(upload_to='notifications/student/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Notification for {self.student.admin.first_name} - {self.created_at.date()}"
 
 
 class StudentResult(models.Model):
@@ -198,6 +206,56 @@ class StudentResult(models.Model):
     exam = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class AdminSettings(models.Model):
+    """Model to store configurable admin settings"""
+    admin_email = models.EmailField(unique=True, help_text="Primary admin email for system notifications")
+    admin_phone = models.CharField(max_length=15, blank=True, help_text="Admin contact phone number")
+    admin_office_address = models.TextField(blank=True, help_text="Admin office address")
+    college_name = models.CharField(max_length=255, default="College Name", help_text="College/Institution name")
+    college_website = models.URLField(blank=True, help_text="College website URL")
+    support_email = models.EmailField(blank=True, help_text="Support email for student/staff queries")
+    enable_email_notifications = models.BooleanField(default=True, help_text="Enable email notifications for file sharing")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Admin Settings"
+
+    def __str__(self):
+        return f"Admin Settings - {self.college_name}"
+
+    @classmethod
+    def get_settings(cls):
+        """Get or create the single admin settings object"""
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class Attachment(models.Model):
+    """Model to store file attachments shared through notifications"""
+    ATTACHMENT_TYPE = (
+        ('assignment', 'Assignment'),
+        ('study_material', 'Study Material'),
+        ('notice', 'Notice'),
+        ('other', 'Other'),
+    )
+    
+    uploaded_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='uploaded_attachments')
+    file = models.FileField(upload_to='attachments/%Y/%m/%d/')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    attachment_type = models.CharField(max_length=20, choices=ATTACHMENT_TYPE, default='other')
+    file_size = models.BigIntegerField(default=0)  # in bytes
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - uploaded by {self.uploaded_by.first_name}"
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 @receiver(post_save, sender=CustomUser)

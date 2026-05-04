@@ -60,7 +60,7 @@
    <div class = "modal-dialog">
       <div class = "modal-content">
          
-         <div class = "modal-header">Send Notification
+         <div class = "modal-header">Send Notification with Optional Attachment
             <button type = "button" class = "btn-close" data-bs-dismiss = "modal" aria-hidden = "true">
             </button>
             
@@ -69,9 +69,19 @@
          
          <div class = "modal-body">
             <div class="form-group">
-                <input type="text" id="message" class='form-control'>
+                <label for="message">Message</label>
+                <textarea id="message" class='form-control' rows="4" placeholder="Enter notification message..."></textarea>
                 <input type="hidden"  id="student_id" class='form-control'>
             </div>
+            <div class="form-group">
+                <label for="attachment">Attach File (Optional)</label>
+                <input type="file" id="attachment" class='form-control' 
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.png,.jpeg,.zip">
+                <small class="form-text text-muted">
+                    Max file size: 5MB. Supported: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, JPEG, ZIP
+                </small>
+            </div>
+            <div id="file-info" class="text-muted"></div>
          </div>
          
          <div class = "modal-footer">
@@ -110,42 +120,66 @@
       
       $(".show_notification").click(function(){
           $("#student_id").val($(this).val())
+          $("#message").val("")
+          $("#attachment").val("")
+          $("#file-info").html("")
       })
+
+      // Handle file selection
+      $("#attachment").change(function(){
+          var file = this.files[0];
+          if (file) {
+              var fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+              if (fileSize > 5) {
+                  alert("File size exceeds 5MB limit!");
+                  $(this).val("")
+                  $("#file-info").html("")
+              } else {
+                  $("#file-info").html("<i class='fas fa-check-circle text-success'></i> " + file.name + " (" + fileSize + " MB)")
+              }
+          }
+      })
+
       $(".send_notification").click(function(){
           var id = $("#student_id").val()
           var message = $("#message").val()
+          var attachment = $("#attachment")[0].files[0]
+
           if (message.trim() === '') {
               alert("Please enter a message before sending.");
               return;
           }
-          sendNotification(id,message);
+          sendNotification(id, message, attachment);
       })
-    function sendNotification(id,message){
+
+    function sendNotification(id, message, attachment){
+        var formData = new FormData();
+        formData.append('id', id);
+        formData.append('message', message);
+        if (attachment) {
+            formData.append('attachment', attachment);
+        }
+
         $.ajax({
-            url: "{% url 'send_student_notification' %}",
+            url: "{% url 'send_student_notification_with_file' %}",
             type: 'POST',
             headers: {
                 'X-CSRFToken': csrftoken
             },
-            data: {
-                id: id,
-                message:message
-            }
+            data: formData,
+            processData: false,
+            contentType: false
         }).done(function (response) {
-           
-                
             if (response == 'True'){
-                alert("Notification Sent");
+                alert("Notification sent successfully!");
+                $('#myModal').modal('hide');
                 location.reload();
               }else{
                 alert("Notification could not be saved. Please try again.");
               }
-               
-           
         }).fail(function (response) {
             alert("Error in sending notification")
         })
-
     }
 
   </script>

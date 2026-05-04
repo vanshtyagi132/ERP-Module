@@ -191,6 +191,50 @@ class EditResultForm(FormSettings):
         model = StudentResult
         fields = ['session_year', 'subject', 'student', 'test', 'exam']
 
+
+class AdminSettingsForm(FormSettings):
+    def __init__(self, *args, **kwargs):
+        super(AdminSettingsForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = models.AdminSettings
+        fields = ['admin_email', 'admin_phone', 'admin_office_address', 
+                  'college_name', 'college_website', 'support_email', 'enable_email_notifications']
+        widgets = {
+            'admin_office_address': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+class NotificationWithAttachmentForm(FormSettings):
+    """Form for sending notifications with file attachments"""
+    recipient_type = forms.ChoiceField(
+        choices=[('student', 'Send to Student'), ('staff', 'Send to Staff')],
+        widget=forms.RadioSelect,
+        required=True
+    )
+    recipient_id = forms.IntegerField(required=True, widget=forms.HiddenInput())
+    
+    def __init__(self, *args, **kwargs):
+        super(NotificationWithAttachmentForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        fields = ['message', 'attachment']
+        widgets = {
+            'message': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter notification message'}),
+            'attachment': forms.FileInput(attrs={'accept': '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.png,.jpeg,.zip'})
+        }
+
+    message = forms.CharField(
+        label='Notification Message',
+        widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'Enter your notification message here'})
+    )
+    attachment = forms.FileField(
+        label='Attach File (Optional)',
+        required=False,
+        help_text='Max file size: 5MB. Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, JPEG, ZIP'
+    )
+
+
 #todos
 # class TodoForm(forms.ModelForm):
 #     class Meta:

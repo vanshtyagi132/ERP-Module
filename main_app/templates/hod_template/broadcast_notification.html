@@ -1,0 +1,86 @@
+{% extends 'hod_template/home_content.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Broadcast Notification</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Broadcast</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Send Message to All Students/Staff</h3>
+                    </div>
+
+                    {% if messages %}
+                        <div class="alert alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="form-group">
+                                <label for="message">Notification Message *</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" 
+                                          placeholder="Enter your message here..." required></textarea>
+                                <small class="form-text text-muted">
+                                    This message will be sent to all recipients via notification and email (if enabled)
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="attachment">Attach File (Optional)</label>
+                                <input type="file" class="form-control-file" id="attachment" name="attachment"
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.png,.jpeg,.zip">
+                                <small class="form-text text-muted">
+                                    Max file size: 5MB. Supported: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, JPG, PNG, JPEG, ZIP
+                                </small>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Note:</strong> This message will be sent to <strong>all students/staff</strong> 
+                                in the system with notifications and emails.
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Broadcast
+                                </button>
+                                <a href="{% url 'admin_home' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

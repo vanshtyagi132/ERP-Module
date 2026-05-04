@@ -24,17 +24,39 @@
 
 
                         <div class="form-group table">
-              <table class="table table-bordered">
-                  <tr>
+              <table class="table table-bordered table-hover">
+                  <tr style="background-color: #f0f0f0;">
                       <th>#</th>
                       <th>Date</th>
                       <th>Message</th>
+                      <th>Attachment</th>
                   </tr>
-                  {% for notification in  notifications %}
+                  {% for notification in notifications %}
                     <tr>
                         <td>{{forloop.counter}}</td>
-                        <td>{{notification.created_at}}</td>
-                        <td>{{notification.message}}</td>
+                        <td>
+                            <small>{{ notification.created_at|date:"d M Y, H:i" }}</small>
+                        </td>
+                        <td style="word-break: break-word;">
+                            {{ notification.message }}
+                        </td>
+                        <td>
+                            {% if notification.attachment %}
+                                <a href="{{ notification.attachment.url }}" class="btn btn-sm btn-primary" download>
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <br>
+                                <small class="text-muted">{{ notification.attachment|filesizeformat }}</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No notifications yet
+                        </td>
                     </tr>
                   {% endfor %}
               </table>

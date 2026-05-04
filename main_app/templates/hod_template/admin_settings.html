@@ -1,0 +1,183 @@
+{% extends 'hod_template/home_content.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Admin Settings</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_home' %}">Home</a></li>
+                    <li class="breadcrumb-item active">Settings</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Configure Administrator Details</h3>
+                    </div>
+
+                    {% if messages %}
+                        <div class="alert alert-dismissible fade show" role="alert">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            <div class="form-section">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-envelope"></i> Email Configuration
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.admin_email.id_for_label }}">Primary Admin Email</label>
+                                            {{ form.admin_email }}
+                                            {% if form.admin_email.errors %}
+                                                <span class="text-danger">{{ form.admin_email.errors }}</span>
+                                            {% endif %}
+                                            <small class="form-text text-muted">Main email for system notifications</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.support_email.id_for_label }}">Support Email</label>
+                                            {{ form.support_email }}
+                                            {% if form.support_email.errors %}
+                                                <span class="text-danger">{{ form.support_email.errors }}</span>
+                                            {% endif %}
+                                            <small class="form-text text-muted">Email for student/staff queries</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="{{ form.enable_email_notifications.id_for_label }}" 
+                                           name="{{ form.enable_email_notifications.name }}" 
+                                           {% if form.enable_email_notifications.value %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ form.enable_email_notifications.id_for_label }}">
+                                        Enable Email Notifications (for file sharing)
+                                    </label>
+                                    <small class="form-text text-muted d-block">
+                                        When enabled, staff/students will receive emails when files are shared with them
+                                    </small>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="form-section">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-building"></i> Institution Details
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.college_name.id_for_label }}">Institution Name</label>
+                                            {{ form.college_name }}
+                                            {% if form.college_name.errors %}
+                                                <span class="text-danger">{{ form.college_name.errors }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.college_website.id_for_label }}">Institution Website</label>
+                                            {{ form.college_website }}
+                                            {% if form.college_website.errors %}
+                                                <span class="text-danger">{{ form.college_website.errors }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="form-section">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-phone"></i> Contact Information
+                                </h5>
+                                
+                                <div class="form-group">
+                                    <label for="{{ form.admin_phone.id_for_label }}">Phone Number</label>
+                                    {{ form.admin_phone }}
+                                    {% if form.admin_phone.errors %}
+                                        <span class="text-danger">{{ form.admin_phone.errors }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="{{ form.admin_office_address.id_for_label }}">Office Address</label>
+                                    {{ form.admin_office_address }}
+                                    {% if form.admin_office_address.errors %}
+                                        <span class="text-danger">{{ form.admin_office_address.errors }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Save Settings
+                                </button>
+                                <a href="{% url 'admin_home' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-section {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-left: 4px solid #007bff;
+    margin-bottom: 15px;
+}
+
+.form-section h5 {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+{% endblock %}
